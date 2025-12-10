@@ -1,4 +1,4 @@
-name: Build and deploy to gh-pages
+name: Build and publish to GitHub Pages
 
 on:
   push:
@@ -6,10 +6,12 @@ on:
       - main
 
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
 
 jobs:
-  build_and_deploy:
+  build_and_upload:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -21,18 +23,24 @@ jobs:
           node-version: '20'
 
       - name: Install dependencies
+        # package-lock.json が無いリポジトリでも確実に動くように npm install に変更
         run: npm install
 
       - name: Build (Vite)
         run: npm run build
 
-      - name: Deploy to gh-pages branch
-        uses: peaceiris/actions-gh-pages@v3
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v3
+
+      - name: Upload artifact (dist)
+        # upload-pages-artifact の最新版に上げる（v2 が利用可能であれば）
+        uses: actions/upload-pages-artifact@v2
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist
-          publish_branch: gh-pages
-          # 以下は任意の設定
-          user_name: github-actions
-          user_email: github-actions@github.com
-          allow_empty_commit: true
+          path: ./dist
+
+  deploy:
+    needs: build_and_upload
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v1
