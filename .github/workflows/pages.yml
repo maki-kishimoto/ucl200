@@ -6,16 +6,16 @@ on:
       - main
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 jobs:
-  build_and_upload:
+  build_and_deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -23,22 +23,21 @@ jobs:
           node-version: '20'
 
       - name: Install dependencies
+        # package-lock.json が無い可能性があるため npm install に変更
         run: npm install
 
       - name: Build (Vite)
+        # ビルド時にシークレットが必要なら下の env をアンコメントして Secrets を追加してください
+        # env:
+        #   GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: npm run build
 
-      - name: Configure GitHub Pages
-        uses: actions/configure-pages@v3
-
-      - name: Upload artifact (dist)
-        uses: actions/upload-pages-artifact@v2
+      - name: Deploy to gh-pages branch
+        uses: peaceiris/actions-gh-pages@v3
         with:
-          path: ./dist
-
-  deploy:
-    needs: build_and_upload
-    runs-on: ubuntu-latest
-    steps:
-      - name: Deploy to GitHub Pages
-        uses: actions/deploy-pages@v1
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+          publish_branch: gh-pages
+          user_name: github-actions
+          user_email: github-actions@github.com
+          allow_empty_commit: true
