@@ -3,8 +3,8 @@ import { Language } from '../types';
 import { translations } from '../constants/translations';
 
 const LocationAndLanguageSelector: React.FC = () => {
-  const [language, setLanguage] = useState<Language>('en');
-
+  // const [language, setLanguage] = useState<Language>('en');
+  const initialLang = (typeof window !== 'undefined' && (window as any).__DEFAULT_LANGUAGE) ? (window as any).__DEFAULT_LANGUAGE as Language : 'en'; const [language, setLanguage] = useState<Language>(initialLang);
   const t = translations[language];
 
   const handleStartChat = () => {
